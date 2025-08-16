@@ -23,9 +23,11 @@ export function useWingFlap({ trigger, liftPx = 10, maxLiftPx = 16, decayPerSec 
     prevTriggerRef.current = trigger;
   }, [trigger, liftPx, maxLiftPx]);
 
+  // remove stray global frame function; the effect below drives the loop
+
   // decay back to 0
   useEffect(() => {
-    const frame = (now: number) => {
+    const wingAnimationFrame = (now: number) => {
       const last = lastRef.current ?? now;
       let dt = (now - last) / 1000; // seconds
       if (dt > 0.05) dt = 0.05;
@@ -37,10 +39,10 @@ export function useWingFlap({ trigger, liftPx = 10, maxLiftPx = 16, decayPerSec 
         setOffsetPx((prev) => (prev !== valueRef.current ? valueRef.current : prev));
       }
 
-      rafRef.current = requestAnimationFrame(frame);
+      rafRef.current = requestAnimationFrame(wingAnimationFrame);
     };
 
-    rafRef.current = requestAnimationFrame(frame);
+    rafRef.current = requestAnimationFrame(wingAnimationFrame);
     return () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;

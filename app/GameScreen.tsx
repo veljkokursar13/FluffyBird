@@ -201,7 +201,7 @@ export default function GameScreen() {
           />
         ))}
         <Bird
-          style={[styles.bird, { top: birdTopPx, left: birdLeftPx }]}
+          style={{ top: birdTopPx, left: birdLeftPx }}
           width={toPxLocal(cfg.bird.width)}
           height={toPxLocal(cfg.bird.height)}
           flapping={renderState.flapPulse && !isGameOver}

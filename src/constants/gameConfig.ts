@@ -30,13 +30,13 @@ export interface GameConfig {
     screenWidth: number; // in units
     screenHeight: number; // in units
     groundHeight: number; // in units
-    pixelsPerUnit: number; // device dependent PPU
   };
 }
 
 const { width: DEVICE_W, height: DEVICE_H } = Dimensions.get('window');
 const WORLD_UNITS = 100;
-const PPU = DEVICE_H / WORLD_UNITS; // pixels per unit based on device height
+// Derive world width (in units) from device aspect ratio and fixed world height
+const SCREEN_WIDTH_UNITS = Math.round((DEVICE_W / DEVICE_H) * WORLD_UNITS);
 
 export const GAME_CONFIG: Readonly<GameConfig> = {
   pipe: {
@@ -67,12 +67,9 @@ export const GAME_CONFIG: Readonly<GameConfig> = {
     x: 12,
   },
   world: {
-    screenWidth: Math.round(DEVICE_W / PPU),
+    screenWidth: SCREEN_WIDTH_UNITS,
     screenHeight: WORLD_UNITS,
     groundHeight: 10,
-    pixelsPerUnit: PPU,
   },
 } as const;
 
-export const toPx = (u: number) => Math.round(u * PPU);
-export const toUnits = (px: number) => px / PPU;

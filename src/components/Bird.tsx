@@ -1,7 +1,6 @@
 import { Image as ExpoImage } from 'expo-image';
-import { ImageSourcePropType, StyleProp, View, ViewStyle } from 'react-native';
+import { ImageSourcePropType, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 import { useWingFlap } from '../game/bird';
-import styles from '../styles/gameStyles';
 
 type BirdProps = {
 	style?: StyleProp<ViewStyle>;
@@ -12,50 +11,47 @@ type BirdProps = {
 	rotationDeg?: number;
 };
 
-function Bird({ style, source, width, height, flapping = true, rotationDeg = 0 }: BirdProps) {
+function Bird({ style, source, width, height, flapping = false, rotationDeg = 0 }: BirdProps) {
 	const imgSource = source ?? require('../../assets/images/bird.svg');
 	const sizeStyle = width && height ? { width, height } : undefined;
 	const flap = useWingFlap({ trigger: flapping, liftPx: 5, maxLiftPx: 8, decayPerSec: 100 });
 
-	// Single wing asset; rotate it for a natural flap
-	const wingSrc = require('../../assets/images/wing-mid.svg');
-
-	// Wing sizing/position relative to bird (small and a bit lower)
-	const wingW = width ? Math.round(width * 0.44) : undefined;
-	const wingH = height ? Math.round(height * 0.44) : undefined;
-	const wingLeft = width && wingW ? Math.round((width - wingW) * 0.50) : 0; // shift a bit left
-	const wingBaseTop = height && wingH ? Math.round((height - wingH) * 0.58) : 0; // lower on body
-	const wingTopPos = wingBaseTop + Math.round(flap.offsetPx);
-
 	return (
-		<View style={[style, sizeStyle, { transform: [{ rotate: `${rotationDeg}deg` }] }]}>
-			{/* Bird body */}
+		<View style={[localStyles.container, style, sizeStyle, { transform: [{ rotate: `${rotationDeg}deg` }] }]}>
 			<ExpoImage
 				source={imgSource}
-				style={[styles.birdImage, sizeStyle]}
+				style={[localStyles.image, sizeStyle]}
 				contentFit="contain"
 			/>
-			
-			{/* Wing - positioned relative to bird body */}
-			<View style={[
-				styles.wing,
-				{
-					position: 'absolute',
-					left: wingLeft,
-					top: wingTopPos,
-					width: wingW,
-					height: wingH,
-					transform: [{ rotate: `${flap.offsetPx * 2}deg` }] // Convert offset to rotation
-				}
-			]}>
+			{width && height ? (
 				<ExpoImage
-					source={wingSrc}
-					style={{ width: '100%', height: '100%' }}
+					source={require('../../assets/images/wing-mid.svg')}
+					style={{
+						position: 'absolute',
+						// wing size ~44% of bird
+						width: Math.round(width * 0.44),
+						height: Math.round(height * 0.44),
+						// anchor further left and lower
+						left: Math.round((width - Math.round(width * 0.44)) * 0.38),
+						top: Math.round((height - Math.round(height * 0.44)) * 0.70) + Math.round(flap.offsetPx),
+						transform: [{ rotate: `${flap.offsetPx * 2}deg` }],
+					}}
 					contentFit="contain"
 				/>
-			</View>
+			) : null}
 		</View>
+
 	);
 }
 
 export default Bird;
+
+const localStyles = StyleSheet.create({
+	container: {
+		position: 'absolute',
+	},
+	image: {
+		width: '100%',
+		height: '100%',
+	},
+});

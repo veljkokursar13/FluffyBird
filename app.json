@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "FlappyBird",
-    "slug": "FlappyBird",
+    "name": "FluffyBird",
+    "slug": "fluffybird",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "flappybird",
+    "icon": "./assets/images/bird.svg",
+    "scheme": "fluffybird",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {

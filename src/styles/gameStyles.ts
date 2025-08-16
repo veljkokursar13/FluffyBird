@@ -50,17 +50,6 @@ const styles = StyleSheet.create({
   },
 
   // Game screen styles
-  bird: {
-    position: 'absolute',
-  },
-  birdImage: {
-    width: '100%',
-    height: '100%',
-  },
-  wing: {
-    backgroundColor: '#8C5A0E',
-    borderRadius: 8,
-  },
   
   // pipe styles removed; Pipe.tsx fully styles itself now
   score: {

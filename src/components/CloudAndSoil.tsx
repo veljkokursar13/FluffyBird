@@ -1,5 +1,9 @@
 import { Image as ExpoImage } from 'expo-image';
 import { StyleSheet } from 'react-native';
+import cloudClose from '../../assets/images/cloud-close-1.svg';
+import cloudFar1 from '../../assets/images/cloud-far-1.svg';
+import cloudFar2 from '../../assets/images/cloud-far-2.svg';
+import soilWithGrass from '../../assets/images/soil-with-grass.svg';
 import type { Cloud, Soil as SoilType } from '../game/environmentCreation';
 
 type CloudProps = {
@@ -11,9 +15,9 @@ type CloudProps = {
 };
 
 const cloudAssets = {
-  close: require('../../assets/images/cloud-close-1.svg'),
-  far1: require('../../assets/images/cloud-far-1.svg'),
-  far2: require('../../assets/images/cloud-far-2.svg'),
+  close: cloudClose,
+  far1: cloudFar1,
+  far2: cloudFar2,
 };
 
 export function Cloud({ cloud, x, y, width, height }: CloudProps) {
@@ -54,7 +58,7 @@ type SoilProps = {
   height: number; // px
 };
 
-const soilAsset = require('../../assets/images/soil-with-grass.svg');
+const soilAsset = soilWithGrass;
 
 export function Soil({ soil, x, y, width, height }: SoilProps) {
   return (
