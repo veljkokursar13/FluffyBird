@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100" width="200" height="100">
+  <defs>
+    <linearGradient id="cloudCloseGrad1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#cfdde7"/>
+    </linearGradient>
+  </defs>
+  <path d="M40,70 Q20,50 40,40 Q50,20 80,30 Q90,10 120,20 Q140,0 160,20 Q180,10 190,40 Q200,60 180,70 Z"
+        fill="url(#cloudCloseGrad1)"/>
+</svg>

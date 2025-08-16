@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 96" width="320" height="96" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="soilGrad2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c58a3a"/>
+      <stop offset="1" stop-color="#7c4f1e"/>
+    </linearGradient>
+    <linearGradient id="grassGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4adf4a"/>
+      <stop offset="1" stop-color="#0b7d1c"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Soil -->
+  <rect x="0" y="0" width="320" height="96" fill="url(#soilGrad2)"/>
+
+  <!-- Grass top -->
+  <path d="M0,16
+           C20,10 40,20 60,16
+           C80,12 100,20 120,16
+           C140,12 160,20 180,16
+           C200,12 220,20 240,16
+           C260,12 280,20 300,16
+           C310,14 315,15 320,16
+           L320,0 L0,0 Z"
+        fill="url(#grassGrad)" stroke="#075515" stroke-width="2"/>
+
+  <!-- Grass highlight -->
+  <path d="M0,12
+           C20,8 40,18 60,12
+           C80,10 100,18 120,12
+           C140,10 160,18 180,12
+           C200,10 220,18 240,12
+           C260,10 280,18 300,12
+           C310,11 315,11 320,12"
+        fill="none" stroke="#ffffff" stroke-width="2" opacity="0.25"/>
+
+  <!-- Pebbles just under grass -->
+  <g fill="#5d3b16" opacity="0.25">
+    <ellipse cx="36" cy="30" rx="5" ry="2.5"/>
+    <ellipse cx="98" cy="28" rx="5" ry="2.5"/>
+    <ellipse cx="166" cy="32" rx="5" ry="2.5"/>
+    <ellipse cx="230" cy="28" rx="5" ry="2.5"/>
+    <ellipse cx="292" cy="30" rx="5" ry="2.5"/>
+  </g>
+</svg>

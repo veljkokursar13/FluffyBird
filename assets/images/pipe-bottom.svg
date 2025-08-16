@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 160" width="80" height="160">
+  <defs>
+    <linearGradient id="pipeGradBody" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0b7d1c"/>
+      <stop offset="0.25" stop-color="#16a432"/>
+      <stop offset="0.5" stop-color="#5ad66a"/>
+      <stop offset="0.75" stop-color="#16a432"/>
+      <stop offset="1" stop-color="#0b7d1c"/>
+    </linearGradient>
+    <linearGradient id="pipeGradCap" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0a6d19"/>
+      <stop offset="0.5" stop-color="#2ab940"/>
+      <stop offset="1" stop-color="#0a6d19"/>
+    </linearGradient>
+  </defs>
+  <!-- Cap (at the top) -->
+  <rect x="6" y="0" width="68" height="26" rx="6" ry="6" fill="url(#pipeGradCap)" stroke="#075515" stroke-width="2"/>
+  <rect x="10" y="8" width="60" height="6" rx="3" ry="3" fill="#ffffff" opacity="0.15"/>
+  <rect x="10" y="16" width="60" height="6" rx="3" ry="3" fill="#000000" opacity="0.15"/>
+  <!-- Body -->
+  <rect x="18" y="24" width="44" height="136" fill="url(#pipeGradBody)" stroke="#075515" stroke-width="2"/>
+  <rect x="22" y="28" width="6" height="128" fill="#ffffff" opacity="0.22"/>
+  <rect x="50" y="28" width="4" height="128" fill="#000000" opacity="0.18"/>
+</svg>
