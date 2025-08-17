@@ -1,3 +1,6 @@
+import { GAME_CONFIG } from '../constants/gameConfig';
+import type { World } from './world';
+
 export type Rect = {
   x: number;
   y: number;
@@ -63,10 +66,6 @@ export default function detectCollision(
 }
 
 
-// Convenience wrapper to detect collisions for the entire world
-import { GAME_CONFIG } from '../constants/gameConfig';
-import type { World } from './world';
-
 // Circle vs Rect overlap helper
 function circleRectOverlap(
   circle: { x: number; y: number; r: number },
@@ -110,8 +109,8 @@ export function detectWorldCollision(
   // Trim pipes horizontally to remove transparent edges
   const trimX = Math.max(0, cfg.pipe.width * 0.08);
   const pipeRects: Rect[] = world.pipes.flatMap((p) => {
-    const topHeight = Math.max(0, p.gapY - cfg.pipe.gap / 2);
-    const bottomY = p.gapY + cfg.pipe.gap / 2;
+    const topHeight = Math.max(0, p.gapY - p.gap / 2);
+    const bottomY = p.gapY + p.gap / 2;
     const bottomHeight = Math.max(
       0,
       cfg.world.screenHeight - cfg.world.groundHeight - bottomY

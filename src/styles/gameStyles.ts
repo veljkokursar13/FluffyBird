@@ -7,13 +7,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 40,
-    backgroundColor: '#0b1020',
     paddingHorizontal: 24,
     paddingVertical: 32,
-  },
-  // Game screen overlay to get a sky-like background while retaining base layout
-  gameContainer: {
-    backgroundColor: '#87CEEB',
   },
 
   // Menu screen styles

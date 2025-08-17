@@ -1,22 +1,17 @@
 import type { GAME_CONFIG } from '../constants/gameConfig';
 import type { Cloud, Soil } from './environmentCreation';
 import { createRandomCloud, initializeSoil } from './environmentCreation';
+import { gapBetweenTopAndBottom, randomGapY } from './pipes';
 
 export type World = {
   bird: { y: number; vy: number; tapTimes?: number[]; fallT?: number };
-  pipes: { x: number; gapY: number; passed?: boolean }[];
+  pipes: { x: number; gapY: number; gap: number; passed?: boolean }[];
   clouds: Cloud[];
   soil: Soil[];
   score: number;
 };
 
 export function createWorld(cfg: typeof GAME_CONFIG): World {
-  const minCenter = (cfg.pipe as any).minGapY ?? cfg.pipe.gap / 2;
-  const maxCenter = (cfg.pipe as any).maxGapY ?? (cfg.world.screenHeight - cfg.world.groundHeight - cfg.pipe.gap / 2);
-  const randCenter = () => {
-    const r = Math.random();
-    return minCenter + r * Math.max(0, maxCenter - minCenter);
-  };
   const minSpace = (cfg.pipe as any).minPairSpacing as number | undefined;
   const maxSpace = (cfg.pipe as any).maxPairSpacing as number | undefined;
   const randSpacing = () => {
@@ -34,11 +29,17 @@ export function createWorld(cfg: typeof GAME_CONFIG): World {
   // Spawn initial pipes off-screen to the right so they slide in naturally
   const x0 = cfg.world.screenWidth + cfg.pipe.width * 1.25;
   const x1 = x0 + randSpacing();
+
+  const randPipe = () => {
+    const gap = gapBetweenTopAndBottom(0, 0);
+    const gapY = randomGapY(gap);
+    return { gap, gapY };
+  };
   return {
     bird: { y: cfg.world.screenHeight * 0.35, vy: 0, tapTimes: [], fallT: 0 },
     pipes: [
-      { x: x0, gapY: randCenter() },
-      { x: x1, gapY: randCenter() },
+      { x: x0, ...randPipe() },
+      { x: x1, ...randPipe() },
     ],
     // Pre-seed a few clouds across the sky so it doesn't start empty
     clouds: Array.from({ length: 5 }).map(() => {

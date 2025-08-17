@@ -1,40 +1,6 @@
 import { GAME_CONFIG } from '../constants/gameConfig';
-import type { Rect } from './collision';
 
-
-export function randomBottomHeight(): number {
-  const max = Math.max(0, GAME_CONFIG.world.screenHeight - GAME_CONFIG.pipe.gap);
-  return Math.random() * max;
-}
-export function randomTopHeight(): number {
-  const max = Math.max(0, GAME_CONFIG.world.screenHeight - GAME_CONFIG.pipe.gap);
-  return Math.random() * max;
-}
-
-export function createBottomPipe(x: number = GAME_CONFIG.world.screenWidth): Rect {
-  const width = GAME_CONFIG.pipe.width;
-  const height = randomBottomHeight();
-  return {
-    x,
-    y: Math.max(0, GAME_CONFIG.world.screenHeight - height),
-    width,
-    height,
-  };
-}
-
-export function createTopPipe(x: number = GAME_CONFIG.world.screenWidth): Rect {
-  const width = GAME_CONFIG.pipe.width;
-  const height = randomTopHeight();
-  return {
-    x,
-    y: 0,
-    width,
-    height,
-  };
-}
-
-export function randomGapY(): number {
-  const gap = GAME_CONFIG.pipe.gap;
+export function randomGapY(gap: number = GAME_CONFIG.pipe.gap): number {
   const worldH = GAME_CONFIG.world.screenHeight;
   const ground = GAME_CONFIG.world.groundHeight;
   // Safe bounds for the gap center in world units
@@ -80,36 +46,6 @@ export function pipeMovement({score}:{score:number}, pipeSpeed:number){
 	return pipeSpeed * factor;
 }
 
-export function createPipePair(x: number = GAME_CONFIG.world.screenWidth, minGapBetweenPipes: number = 0): {
-  top: Rect;
-  bottom: Rect;
-} {
-  const width = GAME_CONFIG.pipe.width;
-  const gap = minGapBetweenPipes;
-  const screenHeight = GAME_CONFIG.world.screenHeight;
-
-  const bottomHeight = randomBottomHeight();
-  const topHeight = Math.max(0, screenHeight - gap - bottomHeight);
-
-  const bottom: Rect = {
-    x,
-    y: Math.max(0, screenHeight - bottomHeight),
-    width,
-    height: bottomHeight,
-  };
-
-  const top: Rect = {
-    x,
-    y: 0,
-    width,
-    height: topHeight,
-  };
-
-  return { top, bottom };
-}
-
-export type { Rect };
-
 // Optional time-based spawner API (pure game logic; not used by render)
 export type PipeSpawner = { nextMs: number };
 
@@ -126,7 +62,7 @@ export function createPipeSpawner(): PipeSpawner {
 // Legacy spawner (simple time/spacing based)
 export function tickPipeSpawner(
   spawner: PipeSpawner,
-  w: { pipes: { x: number; gapY: number; passed?: boolean }[] },
+  w: { pipes: { x: number; gapY: number; gap: number; passed?: boolean }[] },
   dtSec: number,
   score: number
 ): void {
@@ -156,36 +92,24 @@ export function tickPipeSpawner(
   const minX = GAME_CONFIG.world.screenWidth + GAME_CONFIG.pipe.width;
   const x = Math.max(minX, (last ? last.x + spacing : minX));
 
-  // Safe vertical bounds
-  const gap = GAME_CONFIG.pipe.gap;
+  // Determine gap size respecting configured min/max
+  const gap = gapBetweenTopAndBottom(0, 0);
   const worldH = GAME_CONFIG.world.screenHeight;
   const ground = GAME_CONFIG.world.groundHeight;
   const safeMin = gap / 2;
   const safeMax = worldH - ground - gap / 2;
 
-  // 20% chance of extreme (top-only or bottom-only) spawn at any time
-  const willSpawnExtreme = Math.random() < 0.2;
+  // Pick a target gap center within safe bounds
+  const gy = randomGapY(gap);
 
-  // Pick a target gap center
-  let gy: number;
-  if (willSpawnExtreme) {
-    const topOnly = Math.random() < 0.5;
-    gy = topOnly ? safeMin : safeMax;
-  } else {
-    gy = randomGapY();
-  }
+  // Clamp vertical change relative to previous gap center
+  const prevGy = last ? last.gapY : (safeMin + safeMax) / 2;
+  const maxStep = gap * 0.6; // max vertical change per spawn
+  const lower = Math.max(safeMin, prevGy - maxStep);
+  const upper = Math.min(safeMax, prevGy + maxStep);
+  const finalGy = Math.max(lower, Math.min(upper, gy));
 
-  // Clamp vertical change relative to previous gap center (but not for extremes)
-  let finalGy = gy;
-  if (!willSpawnExtreme) {
-    const prevGy = last ? last.gapY : (safeMin + safeMax) / 2;
-    const maxStep = gap * 0.6; // max vertical change per spawn
-    const lower = Math.max(safeMin, prevGy - maxStep);
-    const upper = Math.min(safeMax, prevGy + maxStep);
-    finalGy = Math.max(lower, Math.min(upper, gy));
-  }
-
-  w.pipes.push({ x, gapY: finalGy, passed: false });
+  w.pipes.push({ x, gapY: finalGy, gap, passed: false });
   spawner.nextMs = randomizedIntervalMs();
 }
 

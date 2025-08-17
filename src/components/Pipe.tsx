@@ -24,7 +24,7 @@ export default function Pipe({ x, topHeight, bottomHeight, width, bottomY }: Pip
   const bottomCapHeight = Math.min(capPx, Math.max(0, bottomHeight));
   const topBodyHeight = Math.max(0, topHeight - topCapHeight);
   const bottomBodyHeight = Math.max(0, bottomHeight - bottomCapHeight);
-  const seamOverlap = 1; // hide seam between cap and body
+  const seamOverlap = 2; // hide seam between cap and body
   const topCapRenderH = Math.min(topHeight, topCapHeight + seamOverlap);
   const bottomCapRenderH = Math.min(bottomHeight, bottomCapHeight + seamOverlap);
 

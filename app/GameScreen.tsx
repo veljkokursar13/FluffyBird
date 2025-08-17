@@ -1,7 +1,5 @@
-import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useRef, useState } from "react";
 import { LayoutChangeEvent, PixelRatio, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import Bird from "../src/components/Bird";
 import { Cloud, Soil } from "../src/components/CloudAndSoil";
 import Hud from "../src/components/Hud";
@@ -40,7 +38,7 @@ export default function GameScreen() {
     const w = worldRef.current;
     return {
       birdY: w.bird.y,
-      pipes: w.pipes.map((p) => ({ x: p.x, gapY: p.gapY })),
+      pipes: w.pipes.map((p) => ({ x: p.x, gapY: p.gapY, gap: p.gap })),
       clouds: w.clouds.map((c) => ({ ...c })),
       soil: w.soil.map((s) => ({ ...s })),
       flapPulse: false,
@@ -91,28 +89,6 @@ export default function GameScreen() {
       }
 
       // Collision detection (units)
-      const birdRect = {
-        x: birdXUnits,
-        y: w.bird.y,
-        width: cfg.bird.width,
-        height: cfg.bird.height,
-      };
-      const pipeRects = w.pipes.flatMap((p) => {
-        const topHeight = Math.max(0, p.gapY - cfg.pipe.gap / 2);
-        const bottomHeight = Math.max(
-          0,
-          cfg.world.screenHeight - (p.gapY + cfg.pipe.gap / 2)
-        );
-        return [
-          { x: p.x, y: 0, width: cfg.pipe.width, height: topHeight },
-          {
-            x: p.x,
-            y: cfg.world.screenHeight - bottomHeight,
-            width: cfg.pipe.width,
-            height: bottomHeight,
-          },
-        ];
-      });
       const hit = detectWorldCollision(w, cfg, birdXUnits);
       if (hit.any && !isGameOver) {
         // stop flap and mark game over; keep velocity so bird can fall/rotate naturally
@@ -122,13 +98,13 @@ export default function GameScreen() {
 
       setRenderState((prev) => ({
         birdY: w.bird.y,
-        pipes: w.pipes.map((p) => ({ x: p.x, gapY: p.gapY })),
+        pipes: w.pipes.map((p) => ({ x: p.x, gapY: p.gapY, gap: p.gap })),
         clouds: w.clouds.map((c) => ({ ...c })),
         soil: w.soil.map((s) => ({ ...s })),
         flapPulse: didFlap,
       }));
     },
-    [cfg, isGameOver, score]
+    [cfg, isGameOver, score, markDead]
   );
 
   useGameLoop({ onUpdate: (dt) => update(dt) }, { autoStart: true });
@@ -136,7 +112,6 @@ export default function GameScreen() {
   // Convert to px for rendering (local scale)
   // When dead, tilt the bird downward; optionally clamp to ground if beyond ground line
   const groundYUnits = cfg.world.screenHeight - cfg.world.groundHeight;
-  const isOnGround = renderState.birdY >= groundYUnits - cfg.bird.height;
   let rotationDeg = 0;
   if (isGameOver) {
     rotationDeg = 70;
@@ -155,28 +130,15 @@ export default function GameScreen() {
   const birdTopPx = toPxLocal(Math.min(renderState.birdY, groundYUnits - cfg.bird.height));
   const birdLeftPx = toPxLocal(birdXUnits);
   const pipeWidthPx = toPxLocal(cfg.pipe.width);
-  const gapPx = toPxLocal(cfg.pipe.gap);
   const screenHeightPx = toPxLocal(cfg.world.screenHeight);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#87ceeb' }}>
-      <LinearGradient
-        colors={[
-          'rgb(135, 206, 250)',
-          'rgb(176, 224, 255)',
-          'rgb(212, 241, 255)',
-          'rgb(254, 250, 224)'
-        ]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
-        style={[
-          styles.container,
-          styles.gameContainer,
-        ]}
-        onLayout={onLayout}
-        onStartShouldSetResponder={() => true}
-        onResponderRelease={onTap}
-      >
+    <View
+      style={styles.container}
+      onLayout={onLayout}
+      onStartShouldSetResponder={() => true}
+      onResponderRelease={onTap}
+    >
         {/* Render clouds behind everything */}
         {renderState.clouds.map((cloud, i) => (
           <Cloud
@@ -209,6 +171,7 @@ export default function GameScreen() {
         />
         {renderState.pipes.map((p, i) => {
           const xPx = Math.floor(toPxLocal(p.x));
+          const gapPx = toPxLocal(p.gap);
           const gapYpx = toPxLocal(p.gapY);
           const topHeight = Math.max(0, gapYpx - gapPx / 2);
           const bottomHeight = Math.max(0, screenHeightPx - (gapYpx + gapPx / 2));
@@ -238,7 +201,7 @@ export default function GameScreen() {
                 const w = worldRef.current;
                 setRenderState({
                   birdY: w.bird.y,
-                  pipes: w.pipes.map((p) => ({ x: p.x, gapY: p.gapY })),
+                  pipes: w.pipes.map((p) => ({ x: p.x, gapY: p.gapY, gap: p.gap })),
                   clouds: w.clouds.map((c) => ({ ...c })),
                   soil: w.soil.map((s) => ({ ...s })),
                   flapPulse: false,
@@ -249,7 +212,6 @@ export default function GameScreen() {
             </TouchableOpacity>
           </View>
         )}
-      </LinearGradient>
-    </SafeAreaView>
+    </View>
   );
 }
