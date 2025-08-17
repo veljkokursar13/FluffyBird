@@ -68,16 +68,17 @@ export function gapBetweenTopAndBottom(topHeight: number, bottomHeight: number):
   return Math.min(GAME_CONFIG.pipe.gap, available);
 }
 
-export function pipeMovement({score}:{score:number}, pipeSpeed:number){
+export function pipeMovement({score}:{score:number}, pipeSpeed:number): number{
 	let factor = 1;
 	if (score >= 30) {
-		factor = 1.8;
+		factor = 1.9;
 	} else if (score >= 20) {
-		factor = 1.5;
+		factor = 1.6;
 	} else if (score >= 10) {
-		factor = 1.25;
+		factor = 1.3;
 	}
 	return pipeSpeed * factor;
+  
 }
 
 export function createPipePair(x: number = GAME_CONFIG.world.screenWidth, minGapBetweenPipes: number = 0): {
@@ -126,7 +127,7 @@ export function createPipeSpawner(): PipeSpawner {
 // Legacy spawner (simple time/spacing based)
 export function tickPipeSpawner(
   spawner: PipeSpawner,
-  w: { pipes: { x: number; gapY: number; passed?: boolean }[] },
+  w: { pipes: { x: number; gapY: number; gap?: number; passed?: boolean }[] },
   dtSec: number,
   score: number
 ): void {
@@ -156,23 +157,65 @@ export function tickPipeSpawner(
   const minX = GAME_CONFIG.world.screenWidth + GAME_CONFIG.pipe.width;
   const x = Math.max(minX, (last ? last.x + spacing : minX));
 
-  // Safe vertical bounds
-  const gap = GAME_CONFIG.pipe.gap;
+  // Determine next gap (per-pipe), with variability for higher scores
+  const baseGap = GAME_CONFIG.pipe.gap;
+  let nextGap = baseGap;
+  if (score >= 30) {
+    const minCfg = (GAME_CONFIG.pipe as any).minGapSize as number | undefined;
+    const maxCfg = (GAME_CONFIG.pipe as any).maxGapSize as number | undefined;
+    const minBound = minCfg ?? Math.round(baseGap * 0.72);
+    const maxBound = maxCfg ?? Math.round(baseGap * 0.95);
+    nextGap = minBound + Math.random() * Math.max(0, maxBound - minBound);
+    if (last && (last as any).gap != null) {
+      const prevGap = (last as any).gap as number;
+      const maxGapStep = baseGap * 0.35; // limit gap change between consecutive pipes
+      const lo = Math.max(minBound, prevGap - maxGapStep);
+      const hi = Math.min(maxBound, prevGap + maxGapStep);
+      nextGap = Math.max(lo, Math.min(hi, nextGap));
+    }
+  }
+
+  // Safe vertical bounds computed with the chosen gap
+  const gap = nextGap;
   const worldH = GAME_CONFIG.world.screenHeight;
   const ground = GAME_CONFIG.world.groundHeight;
   const safeMin = gap / 2;
   const safeMax = worldH - ground - gap / 2;
 
-  // 20% chance of extreme (top-only or bottom-only) spawn at any time
-  const willSpawnExtreme = Math.random() < 0.2;
+  // Avoid alternating impossible extremes: if last was bottom-only, don't spawn top-only next, and vice versa
+  let lastExtreme: 'top' | 'bottom' | null = null;
+  if (last) {
+    const lastGap = (last as any).gap ?? baseGap;
+    const lastSafeMin = lastGap / 2;
+    const lastSafeMax = worldH - ground - lastGap / 2;
+    if (Math.abs(last.gapY - lastSafeMin) < 1e-3) lastExtreme = 'bottom';
+    else if (Math.abs(last.gapY - lastSafeMax) < 1e-3) lastExtreme = 'top';
+  }
+  let willSpawnExtreme = Math.random() < 0.2;
+  let topOnly = false;
+  if (willSpawnExtreme) {
+    topOnly = Math.random() < 0.5;
+    if ((lastExtreme === 'top' && !topOnly) || (lastExtreme === 'bottom' && topOnly)) {
+      // disable opposite extreme adjacency
+      willSpawnExtreme = false;
+    }
+  }
 
+  let maxHeight: number;
+  let minHeight: number;
   // Pick a target gap center
   let gy: number;
   if (willSpawnExtreme) {
-    const topOnly = Math.random() < 0.5;
     gy = topOnly ? safeMin : safeMax;
+    maxHeight = topOnly ? safeMax : safeMin;
+    minHeight = topOnly ? safeMin : safeMax;
+    // avoid too small gap on extremes
+    nextGap = Math.max(nextGap, baseGap * 0.85);
   } else {
-    gy = randomGapY();
+    // random gap center within safe bounds for this gap
+    gy = safeMin + Math.random() * Math.max(0, safeMax - safeMin);
+    maxHeight = safeMax;
+    minHeight = safeMin;
   }
 
   // Clamp vertical change relative to previous gap center (but not for extremes)
@@ -180,12 +223,12 @@ export function tickPipeSpawner(
   if (!willSpawnExtreme) {
     const prevGy = last ? last.gapY : (safeMin + safeMax) / 2;
     const maxStep = gap * 0.6; // max vertical change per spawn
-    const lower = Math.max(safeMin, prevGy - maxStep);
-    const upper = Math.min(safeMax, prevGy + maxStep);
+    const lower = Math.max(minHeight, prevGy - maxStep);
+    const upper = Math.min(maxHeight, prevGy + maxStep);
     finalGy = Math.max(lower, Math.min(upper, gy));
   }
 
-  w.pipes.push({ x, gapY: finalGy, passed: false });
+  w.pipes.push({ x, gapY: finalGy, gap: Math.round(nextGap), passed: false });
   spawner.nextMs = randomizedIntervalMs();
 }
 

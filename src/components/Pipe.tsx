@@ -20,33 +20,32 @@ export default function Pipe({ x, topHeight, bottomHeight, width, bottomY }: Pip
   const capPx = width != null && GAME_CONFIG.pipe.width > 0
     ? Math.max(0, Math.round((capUnits / GAME_CONFIG.pipe.width) * width))
     : 0;
+
+  // Scale seam overlap slightly with width to hide gaps at larger sizes
+  const seamOverlapPx = Math.max(2, Math.round((width ?? GAME_CONFIG.pipe.width) * 0.06));
+
   const topCapHeight = Math.min(capPx, Math.max(0, topHeight));
   const bottomCapHeight = Math.min(capPx, Math.max(0, bottomHeight));
-  const topBodyHeight = Math.max(0, topHeight - topCapHeight);
-  const bottomBodyHeight = Math.max(0, bottomHeight - bottomCapHeight);
-  const seamOverlap = 1; // hide seam between cap and body
-  const topCapRenderH = Math.min(topHeight, topCapHeight + seamOverlap);
-  const bottomCapRenderH = Math.min(bottomHeight, bottomCapHeight + seamOverlap);
 
   return (
     <>
-      {/* Top segment: body then cap */}
+      {/* Top segment: body then cap (cap on top) */}
       <View style={[stylesPipe.columnTop, { left: x, height: topHeight }, commonWidth]}>
-        {topBodyHeight > 0 ? (
-          <ExpoImage source={pipeBody} style={{ width, height: topBodyHeight }} contentFit="fill" />
+        {topHeight > 0 ? (
+          <ExpoImage source={pipeBody} style={{ width, height: topHeight + seamOverlapPx }} contentFit="fill" />
         ) : null}
         {topCapHeight > 0 ? (
-          <ExpoImage source={pipeTopCap} style={{ width, height: topCapRenderH }} contentFit="fill" />
+          <ExpoImage source={pipeTopCap} style={{ position: 'absolute', left: 0, bottom: 0, width, height: topCapHeight, zIndex: 1 }} contentFit="fill" />
         ) : null}
       </View>
 
-      {/* Bottom segment: cap then body */}
+      {/* Bottom segment: body first, then cap on top */}
       <View style={[stylesPipe.columnBottom, { left: x, top: bottomY, height: bottomHeight }, commonWidth]}>
-        {bottomCapHeight > 0 ? (
-          <ExpoImage source={pipeBottomCap} style={{ width, height: bottomCapRenderH }} contentFit="fill" />
+        {bottomHeight > 0 ? (
+          <ExpoImage source={pipeBody} style={{ position: 'absolute', left: 0, top: -seamOverlapPx, width, height: bottomHeight + seamOverlapPx }} contentFit="fill" />
         ) : null}
-        {bottomBodyHeight > 0 ? (
-          <ExpoImage source={pipeBody} style={{ width, height: bottomBodyHeight }} contentFit="fill" />
+        {bottomCapHeight > 0 ? (
+          <ExpoImage source={pipeBottomCap} style={{ position: 'absolute', left: 0, top: 0, width, height: bottomCapHeight, zIndex: 1 }} contentFit="fill" />
         ) : null}
       </View>
     </>
@@ -58,10 +57,12 @@ const stylesPipe = StyleSheet.create({
     position: 'absolute',
     top: 0,
     overflow: 'hidden',
+    zIndex: 3,
   },
   columnBottom: {
     position: 'absolute',
     overflow: 'hidden',
+    zIndex: 3,
   },
   capAlign: {
     alignSelf: 'center',

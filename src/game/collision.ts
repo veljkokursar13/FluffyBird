@@ -110,8 +110,9 @@ export function detectWorldCollision(
   // Trim pipes horizontally to remove transparent edges
   const trimX = Math.max(0, cfg.pipe.width * 0.08);
   const pipeRects: Rect[] = world.pipes.flatMap((p) => {
-    const topHeight = Math.max(0, p.gapY - cfg.pipe.gap / 2);
-    const bottomY = p.gapY + cfg.pipe.gap / 2;
+    const pGap = (p as any).gap ?? cfg.pipe.gap;
+    const topHeight = Math.max(0, p.gapY - pGap / 2);
+    const bottomY = p.gapY + pGap / 2;
     const bottomHeight = Math.max(
       0,
       cfg.world.screenHeight - cfg.world.groundHeight - bottomY

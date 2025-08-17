@@ -79,11 +79,18 @@ export function applyBirdPhysics(w: World, cfg: typeof GAME_CONFIG, dt: number, 
   // Determine jump with optional combo boost
   let jump = cfg.bird.jumpVelocity;
   const taps = b.tapTimes ?? [];
-  if (flap && taps.length >= 5) {
-    jump += 10; // combo boost
-    b.tapTimes = []; // consume combo
+  if (flap) {
+    let bonus = 0;
+    const n = taps.length; // sliding window is maintained by the caller
+    if (n >= 10) bonus = 18;
+    else if (n >= 8) bonus = 14;
+    else if (n >= 5) bonus = 10;
+    b.vy = -(jump + bonus);
+    if (bonus > 0) {
+      // consume the combo so it must be rebuilt
+      b.tapTimes = [];
+    }
   }
-  if (flap) b.vy = -jump;
 
   // Track continuous fall duration (vy >= 0 means falling or zero)
   if (b.vy >= 0) {

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 280" width="1600" height="280" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="bushNearGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#37c837"/>
+      <stop offset="100%" stop-color="#0b7d1c"/>
+    </linearGradient>
+    <linearGradient id="bushNearHighlight" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#caffc6" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#caffc6" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M0,220
+           C80,180 160,220 240,200
+           C320,180 400,230 480,210
+           C560,190 640,240 720,220
+           C800,200 880,240 960,210
+           C1040,180 1120,240 1200,220
+           C1280,200 1360,230 1440,210
+           C1520,190 1560,200 1600,210
+           L1600,280 L0,280 Z"
+        fill="url(#bushNearGrad)" stroke="#075515" stroke-width="3"/>
+
+  <path d="M0,210
+           C80,170 160,210 240,190
+           C320,170 400,220 480,200
+           C560,180 640,230 720,210
+           C800,190 880,230 960,200
+           C1040,170 1120,230 1200,210
+           C1280,190 1360,220 1440,200
+           C1520,180 1560,190 1600,200"
+        fill="none" stroke="url(#bushNearHighlight)" stroke-width="6" stroke-linecap="round" opacity="0.7"/>
+
+  <g fill="#ffffff" opacity="0.08">
+    <circle cx="180" cy="210" r="8"/>
+    <circle cx="520" cy="205" r="7"/>
+    <circle cx="860" cy="215" r="8"/>
+    <circle cx="1180" cy="200" r="7"/>
+    <circle cx="1450" cy="208" r="8"/>
+  </g>
+</svg>

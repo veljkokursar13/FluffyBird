@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 200" width="1600" height="200" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="bushFarGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#b7f6b7"/>
+      <stop offset="100%" stop-color="#61be61"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M0,160
+           C100,150 200,165 300,155
+           C400,145 500,165 600,155
+           C700,145 800,165 900,155
+           C1000,145 1100,165 1200,155
+           C1300,145 1400,160 1600,160
+           L1600,200 L0,200 Z"
+        fill="url(#bushFarGrad)" opacity="0.9"/>
+</svg>

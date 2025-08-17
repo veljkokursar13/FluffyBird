@@ -139,3 +139,31 @@ export function recycleSoil(soilSegments: Soil[]): void {
     soilSegments.push(createSoilSegment(newX));
   }
 }
+
+export type Bush = {
+  x: number;
+  y: number;
+  type: 'near' | 'far';
+  width: number;
+  height: number;
+};
+
+export function initializeBushes(): Bush[] {
+  const bushes: Bush[] = [];
+  const groundY = GAME_CONFIG.world.screenHeight - GAME_CONFIG.world.groundHeight;
+  const nearCount = 2 + Math.floor(Math.random() * 2); // 2-3 near
+  const farCount = 2 + Math.floor(Math.random() * 2);  // 2-3 far
+
+  const pushBush = (type: 'near' | 'far') => {
+    const isNear = type === 'near';
+    const width = isNear ? 18 + Math.random() * 10 : 12 + Math.random() * 8; // units
+    const height = isNear ? 8 + Math.random() * 5 : 5 + Math.random() * 4;   // units
+    const x = Math.random() * (GAME_CONFIG.world.screenWidth - width);
+    const y = groundY - height - (isNear ? 0.5 : 1);
+    bushes.push({ x, y, type, width, height });
+  };
+
+  for (let i = 0; i < nearCount; i++) pushBush('near');
+  for (let i = 0; i < farCount; i++) pushBush('far');
+  return bushes;
+}

@@ -49,6 +49,7 @@ export default Bird;
 const localStyles = StyleSheet.create({
 	container: {
 		position: 'absolute',
+		zIndex: 4,
 	},
 	image: {
 		width: '100%',
