@@ -1,11 +1,5 @@
 import { GAME_CONFIG } from "../constants/gameConfig";
 
-// Asset imports using require() for React Native
-const cloudClose1 = require('../../assets/images/cloud-close-1.svg');
-const cloudFar1 = require('../../assets/images/cloud-far-1.svg');
-const cloudFar2 = require('../../assets/images/cloud-far-2.svg');
-const soil = require('../../assets/images/soil-with-grass.svg');
-
 export type Cloud = {
   x: number;
   y: number;
@@ -49,39 +43,6 @@ export function createRandomCloud(): Cloud {
   };
 }
 
-export function spawnClouds(clouds: Cloud[], dtSec: number): void {
-  // Higher spawn rate: ~1 cloud per second on average
-  const spawnChance = dtSec * 1.0; // 100% chance per second
-  if (Math.random() < spawnChance) {
-    const margin = 2; // units vertical margin
-    let c = createRandomCloud();
-    let attempts = 5;
-    const overlaps = (a: Cloud, b: Cloud) => !(a.y + a.height + margin < b.y || b.y + b.height + margin < a.y);
-    while (attempts-- > 0 && clouds.some((other) => overlaps(c, other))) {
-      c.y = Math.random() * (GAME_CONFIG.world.screenHeight * 0.6);
-    }
-    if (!clouds.some((other) => overlaps(c, other))) {
-      clouds.push(c);
-    }
-  }
-}
-
-export function advanceClouds(clouds: Cloud[], dtSec: number, basePipeSpeed?: number): void {
-  const pipeSpeed = basePipeSpeed ?? GAME_CONFIG.pipe.speed;
-  clouds.forEach(cloud => {
-    cloud.x -= pipeSpeed * cloud.speed * dtSec;
-  });
-}
-
-export function recycleClouds(clouds: Cloud[]): void {
-  // Remove clouds that have moved off-screen
-  for (let i = clouds.length - 1; i >= 0; i--) {
-    if (clouds[i].x + clouds[i].width < -20) {
-      clouds.splice(i, 1);
-    }
-  }
-}
-
 export type Soil = {
   x: number;
   y: number;
@@ -108,36 +69,6 @@ export function initializeSoil(): Soil[] {
   segments.push(createSoilSegment(segmentWidth));
   
   return segments;
-}
-
-export function advanceSoil(soilSegments: Soil[], dtSec: number, basePipeSpeed?: number): void {
-  const pipeSpeed = basePipeSpeed ?? GAME_CONFIG.pipe.speed;
-  soilSegments.forEach(segment => {
-    segment.x -= pipeSpeed * dtSec;
-  });
-}
-
-export function recycleSoil(soilSegments: Soil[]): void {
-  const segmentWidth = GAME_CONFIG.world.screenWidth;
-  
-  // Remove segments that are completely off-screen to the left
-  for (let i = soilSegments.length - 1; i >= 0; i--) {
-    const segment = soilSegments[i];
-    if (segment.x + segment.width < -segmentWidth * 0.1) { // Small buffer
-      soilSegments.splice(i, 1);
-    }
-  }
-  
-  // Add new segments to the right if needed
-  const rightmostSegment = soilSegments.reduce((rightmost, segment) => 
-    segment.x > rightmost.x ? segment : rightmost
-  );
-  
-  // If the rightmost segment has moved left enough, add a new one
-  if (rightmostSegment.x <= segmentWidth * 0.5) {
-    const newX = rightmostSegment.x + segmentWidth;
-    soilSegments.push(createSoilSegment(newX));
-  }
 }
 
 export type Bush = {

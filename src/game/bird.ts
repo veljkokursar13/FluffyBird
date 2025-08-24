@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import type { GAME_CONFIG } from "../constants/gameConfig";
+
 
 type WingFlapOptions = {
   trigger: boolean;      // toggle/edge per tap
@@ -51,4 +53,27 @@ export function useWingFlap({ trigger, liftPx = 10, maxLiftPx = 16, decayPerSec 
   }, [decayPerSec]);
 
   return { offsetPx } as const;
+}
+
+export function computeBirdTiltDeg(vy: number, cfg: typeof GAME_CONFIG, dead: boolean): number {
+  if (dead) return 70;
+  const upTilt = -15;
+  const downTilt = 35;
+  if (vy < 0) {
+    const t = Math.min(1, Math.abs(vy) / (cfg.bird.jumpVelocity * 0.8));
+    return upTilt * t;
+  } else {
+    const t = Math.min(1, vy / (cfg.bird.maxFallSpeed * 0.7));
+    return downTilt * t;
+  }
+}
+
+export function registerTap(
+  bird: { tapTimes?: number[] },
+  windowMs: number = 1500
+): void {
+  const now = Date.now();
+  const taps = bird.tapTimes ?? [];
+  taps.push(now);
+  bird.tapTimes = taps.filter((t) => now - t <= windowMs);
 }

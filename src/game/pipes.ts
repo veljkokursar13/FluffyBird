@@ -1,71 +1,9 @@
 import { GAME_CONFIG } from '../constants/gameConfig';
 import type { Rect } from './collision';
 
-
-export function randomBottomHeight(): number {
-  const max = Math.max(0, GAME_CONFIG.world.screenHeight - GAME_CONFIG.pipe.gap);
-  return Math.random() * max;
-}
-export function randomTopHeight(): number {
-  const max = Math.max(0, GAME_CONFIG.world.screenHeight - GAME_CONFIG.pipe.gap);
-  return Math.random() * max;
-}
-
-export function createBottomPipe(x: number = GAME_CONFIG.world.screenWidth): Rect {
-  const width = GAME_CONFIG.pipe.width;
-  const height = randomBottomHeight();
-  return {
-    x,
-    y: Math.max(0, GAME_CONFIG.world.screenHeight - height),
-    width,
-    height,
-  };
-}
-
-export function createTopPipe(x: number = GAME_CONFIG.world.screenWidth): Rect {
-  const width = GAME_CONFIG.pipe.width;
-  const height = randomTopHeight();
-  return {
-    x,
-    y: 0,
-    width,
-    height,
-  };
-}
-
-export function randomGapY(): number {
-  const gap = GAME_CONFIG.pipe.gap;
-  const worldH = GAME_CONFIG.world.screenHeight;
-  const ground = GAME_CONFIG.world.groundHeight;
-  // Safe bounds for the gap center in world units
-  const safeMin = gap / 2;
-  const safeMax = worldH - ground - gap / 2;
-  const cfgMin = (GAME_CONFIG.pipe as any).minGapY as number | undefined;
-  const cfgMax = (GAME_CONFIG.pipe as any).maxGapY as number | undefined;
-  const min = Math.max(safeMin, cfgMin ?? safeMin);
-  const max = Math.min(safeMax, cfgMax ?? safeMax);
-  const lo = Math.min(min, max);
-  const hi = Math.max(min, max);
-  const span = Math.max(0, hi - lo);
-  const r = span > 0 ? Math.random() * span : 0;
-  return lo + r;
-}
-
-export function gapBetweenTopAndBottom(topHeight: number, bottomHeight: number): number {
-  const available = Math.max(0,
-    GAME_CONFIG.world.screenHeight - GAME_CONFIG.world.groundHeight - topHeight - bottomHeight
-  );
-  const minGap = (GAME_CONFIG.pipe as any).minGapSize as number | undefined;
-  const maxGap = (GAME_CONFIG.pipe as any).maxGapSize as number | undefined;
-  if (minGap != null && maxGap != null) {
-    const lo = Math.max(0, Math.min(minGap, maxGap));
-    const hi = Math.max(lo, Math.max(minGap, maxGap));
-    const upper = Math.min(hi, available);
-    const span = Math.max(0, upper - lo);
-    const r = span > 0 ? Math.random() * span : 0;
-    return lo + r;
-  }
-  return Math.min(GAME_CONFIG.pipe.gap, available);
+let PIPE_ID = 1;
+export function nextPipeId(): number {
+  return PIPE_ID++;
 }
 
 export function pipeMovement({score}:{score:number}, pipeSpeed:number): number{
@@ -89,7 +27,7 @@ export function createPipePair(x: number = GAME_CONFIG.world.screenWidth, minGap
   const gap = minGapBetweenPipes;
   const screenHeight = GAME_CONFIG.world.screenHeight;
 
-  const bottomHeight = randomBottomHeight();
+  const bottomHeight = Math.random() * Math.max(0, GAME_CONFIG.world.screenHeight - GAME_CONFIG.pipe.gap);
   const topHeight = Math.max(0, screenHeight - gap - bottomHeight);
 
   const bottom: Rect = {
@@ -206,7 +144,7 @@ export function tickPipeSpawner(
   // Pick a target gap center
   let gy: number;
   if (willSpawnExtreme) {
-    gy = topOnly ? safeMin : safeMax;
+    gy = topOnly ? safeMax : safeMin;
     maxHeight = topOnly ? safeMax : safeMin;
     minHeight = topOnly ? safeMin : safeMax;
     // avoid too small gap on extremes
@@ -228,7 +166,7 @@ export function tickPipeSpawner(
     finalGy = Math.max(lower, Math.min(upper, gy));
   }
 
-  w.pipes.push({ x, gapY: finalGy, gap: Math.round(nextGap), passed: false });
+  w.pipes.push({ id: nextPipeId(), x, gapY: finalGy, gap: Math.round(nextGap), passed: false } as any);
   spawner.nextMs = randomizedIntervalMs();
 }
 

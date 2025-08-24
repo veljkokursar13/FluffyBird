@@ -1,10 +1,11 @@
 import type { GAME_CONFIG } from '../constants/gameConfig';
 import type { Bush, Cloud, Soil } from './environmentCreation';
 import { createRandomCloud, initializeBushes, initializeSoil } from './environmentCreation';
+import { nextPipeId } from './pipes';
 
 export type World = {
   bird: { y: number; vy: number; tapTimes?: number[]; fallT?: number };
-  pipes: { x: number; gapY: number; gap?: number; passed?: boolean }[];
+  pipes: { id: number; x: number; gapY: number; gap?: number; passed?: boolean }[];
   clouds: Cloud[];
   soil: Soil[];
   bushes: Bush[];
@@ -38,8 +39,8 @@ export function createWorld(cfg: typeof GAME_CONFIG): World {
   return {
     bird: { y: cfg.world.screenHeight * 0.35, vy: 0, tapTimes: [], fallT: 0 },
     pipes: [
-      { x: x0, gapY: randCenter(), gap: cfg.pipe.gap },
-      { x: x1, gapY: randCenter(), gap: cfg.pipe.gap },
+      { id: nextPipeId(), x: x0, gapY: randCenter(), gap: cfg.pipe.gap },
+      { id: nextPipeId(), x: x1, gapY: randCenter(), gap: cfg.pipe.gap },
     ],
     // Pre-seed a few clouds across the sky so it doesn't start empty
     clouds: Array.from({ length: 5 }).map(() => {

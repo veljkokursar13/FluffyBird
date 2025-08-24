@@ -44,4 +44,18 @@ export async function unloadSound(): Promise<void> {
 	}
 }
 
+// Preload tap sound without playing
+export async function preloadTapSound(): Promise<void> {
+	try {
+		if (!tapSound) {
+			const { sound } = await Audio.Sound.createAsync(
+				require('../../assets/audio/gameplaysound.mp3')
+			);
+			tapSound = sound;
+		}
+	} catch (error) {
+		console.warn('Failed to preload tap sound', error);
+	}
+}
+
 

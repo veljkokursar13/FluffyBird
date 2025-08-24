@@ -10,11 +10,15 @@ type HudProps = {
 export default function Hud({ score, style }: HudProps) {
   const { bestScore } = useBestScore({ score });
   return (
-    <View style={[styles.scoreContainer, style]}>
-      <Text style={styles.score}>Score: {score}</Text>
-      <Text style={styles.score}>Best: {bestScore}</Text>
+    <View style={[styles.hudContainer, style]}>
+      <View style={styles.hudRow}>
+        <Text style={styles.hudLabel}>Score</Text>
+        <Text style={styles.hudValue}>{score}</Text>
+      </View>
+      <View style={styles.hudRow}>
+        <Text style={styles.hudLabel}>Best</Text>
+        <Text style={styles.hudValue}>{bestScore}</Text>
+      </View>
     </View>
   );
 }
-
-

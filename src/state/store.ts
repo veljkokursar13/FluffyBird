@@ -1,10 +1,13 @@
+
 import { create } from 'zustand';
 
-export type Phase = 'menu' | 'playing' | 'gameover';
+export type Phase = 'loading' | 'menu' | 'playing' | 'paused' | 'gameover';
 
 export type Pipe = { id: string; x: number; y: number; width: number; height: number };
 
 export type Bird = { x: number; y: number; width: number; height: number };
+
+
 
 export type GameState = {
   w: number;
@@ -22,11 +25,12 @@ export type GameState = {
 const initialState: Omit<GameState, 'reset' | 'start' | 'flap' | 'set'> = {
   w: 0,
   h: 0,
-  phase: 'menu',
+  phase: 'loading',
   pipes: [],
   bird: { x: 0, y: 0, width: 0, height: 0 },
   score: 0,
 };
+
 
 export const useGameStore = create<GameState>((set) => ({
   ...initialState,

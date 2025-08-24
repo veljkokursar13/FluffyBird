@@ -1,7 +1,8 @@
+import GameLoader from '@/src/components/GameLoader';
 import { playSound as playBgm, stopSound as stopBgm } from '@/src/state/fluffy-soundtrack';
+import useGameLoading from '@/src/state/gameLoading';
 import { useSoundStore } from '@/src/state/sound';
 import styles from '@/src/styles/gameStyles';
-import { useLoading } from '@/src/utils/rand';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
@@ -10,10 +11,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function MenuScreen() {
   const { muted, toggle } = useSoundStore();
-  const loading = useLoading();
+  const loading = useGameLoading(1000);
   
-  // Play background music only on the menu screen
+  // Play background music only on the menu screen and only when not loading
   useEffect(() => {
+    if (loading) {
+      stopBgm();
+      return;
+    }
     if (!muted) {
       playBgm();
     } else {
@@ -22,21 +27,25 @@ export default function MenuScreen() {
     return () => {
       stopBgm();
     };
-  }, [muted]);
+  }, [muted, loading]);
+  
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Loading...</Text>
-      </View>
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }}>
+        <View style={styles.container}>
+          <GameLoader />
+        </View>
+      </SafeAreaView>
     );
   }
+
   const startGame = () => {
     stopBgm();
     router.push('/GameScreen');
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#0b1020' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#000000' }}>
       <View style={styles.container}>
       <TouchableOpacity
         onPress={toggle}
@@ -50,7 +59,12 @@ export default function MenuScreen() {
         Flappy Bird
       </Text>
 
-      <TouchableOpacity style={styles.button} onPress={startGame}>
+      <TouchableOpacity
+        onPress={startGame}
+        style={styles.button}
+        accessibilityRole="button"
+        accessibilityLabel="Start Game"
+      >
         <Text style={styles.buttonText}>Start Game</Text>
       </TouchableOpacity>
       </View>

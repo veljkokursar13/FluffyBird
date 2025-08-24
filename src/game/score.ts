@@ -1,52 +1,40 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Rect } from '../game/collision';
+
+export type PipeLike = { id: number; x: number; width: number };
 
 export type UseScoreArgs = {
-  birdX?: number; // center X of the bird
-  pipes?: Rect[]; // both top and bottom pipes (same x/width)
+  birdX?: number; // center X of the bird (in world units)
+  pipes?: PipeLike[]; // pipe data with stable ids
 };
 
 export function useScore({ birdX, pipes = [] }: UseScoreArgs = {}) {
   const [score, setScore] = useState(0);
-  const passedCentersRef = useRef<Set<number>>(new Set());
-  const prevBirdXRef = useRef<number | null>(null);
+  const passedIdsRef = useRef<Set<number>>(new Set());
 
   const pipeCenters = useMemo(() => {
-    if (!pipes || pipes.length === 0) return [] as number[];
-    const centers = new Set<number>();
-    for (const p of pipes) {
-      const cx = Math.round(p.x + p.width / 2);
-      centers.add(cx);
-    }
-    return Array.from(centers).sort((a, b) => a - b);
+    if (!pipes || pipes.length === 0) return [] as { id: number; centerX: number }[];
+    return pipes
+      .map((p) => ({ id: p.id, centerX: Math.round(p.x + p.width / 2) }))
+      .sort((a, b) => a.centerX - b.centerX);
   }, [pipes]);
 
   useEffect(() => {
-    if (typeof birdX !== 'number' || pipeCenters.length === 0) {
-      prevBirdXRef.current = birdX ?? prevBirdXRef.current;
-      return;
-    }
+    if (typeof birdX !== 'number' || pipeCenters.length === 0) return;
 
-    const previousX = prevBirdXRef.current ?? birdX;
     let increments = 0;
-    for (const centerX of pipeCenters) {
-      if (
-        previousX < centerX &&
-        birdX >= centerX &&
-        !passedCentersRef.current.has(centerX)
-      ) {
-        passedCentersRef.current.add(centerX);
+    const bx = Math.round(birdX);
+    for (const { id, centerX } of pipeCenters) {
+      if (centerX <= bx && !passedIdsRef.current.has(id)) {
+        passedIdsRef.current.add(id);
         increments += 1;
       }
     }
     if (increments > 0) setScore((s) => s + increments);
-    prevBirdXRef.current = birdX;
   }, [birdX, pipeCenters]);
 
   const reset = () => {
     setScore(0);
-    passedCentersRef.current.clear();
-    prevBirdXRef.current = null;
+    passedIdsRef.current.clear();
   };
 
   return { score, reset } as const;

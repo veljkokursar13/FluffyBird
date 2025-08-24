@@ -52,19 +52,44 @@ const styles = StyleSheet.create({
   // Game screen styles
   
   // pipe styles removed; Pipe.tsx fully styles itself now
-  score: {
-    color: '#B8860B',
-    fontSize: 24,
-    fontWeight: 'bold',
-    letterSpacing: 0.75,
-    textTransform: 'uppercase',
-  },
-  scoreContainer: {
+  
+  // HUD styles for score visibility
+  hudContainer: {
     position: 'absolute',
     top: 16,
     left: 16,
     alignItems: 'flex-start',
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.5,
+    gap: 4,
+  },
+  hudRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
+  },
+  hudLabel: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 12,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  hudValue: {
+    color: '#ffffff',
+    fontSize: 22,
+    fontWeight: '900',
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 3,
   },
 });
 

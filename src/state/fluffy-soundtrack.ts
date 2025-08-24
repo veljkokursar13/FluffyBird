@@ -59,4 +59,19 @@ export async function unloadSound(): Promise<void> {
 	}
 }
 
+// Preload soundtrack without playing
+export async function preloadSoundtrack(): Promise<void> {
+	try {
+		if (!bgm) {
+			const { sound } = await Audio.Sound.createAsync(
+				require('../../assets/audio/fluffy-soundtrack.wav'),
+				{ isLooping: true, volume: 0.6 }
+			);
+			bgm = sound;
+		}
+	} catch (error) {
+		console.warn('Failed to preload background music', error);
+	}
+}
+
 

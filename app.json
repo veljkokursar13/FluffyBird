@@ -2,7 +2,7 @@
   "expo": {
     "name": "FluffyBird",
     "slug": "fluffybird",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/bird.svg",
     "scheme": "fluffybird",

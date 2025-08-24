@@ -1,7 +1,9 @@
 import { playSound, stopSound as stopTap } from "@/src/state/gameplaysound";
 import { useSoundStore } from '@/src/state/sound';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LayoutChangeEvent, PixelRatio, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -10,9 +12,11 @@ import { BushesFull, Cloud, Skyline, Soil } from "../src/components/CloudAndSoil
 import Hud from "../src/components/Hud";
 import Pipe from "../src/components/Pipe";
 import { GAME_CONFIG } from "../src/constants/gameConfig";
+import { computeBirdTiltDeg, registerTap } from "../src/game/bird";
 import { detectWorldCollision } from "../src/game/collision";
-import { advancePipesMut, applyBirdPhysics, recyclePipes, updateClouds, updateSoil } from "../src/game/physics";
+import { advancePipesMut, applyBirdPhysics, recyclePipes } from "../src/game/physics";
 import { createPipeSpawner, pipeMovement, tickPipeSpawner } from "../src/game/pipes";
+import useScore from "../src/game/score";
 import { createWorld } from "../src/game/world";
 import useGameLoop, { useDeadBird } from "../src/hooks/useGameLoop";
 import styles from "../src/styles/gameStyles";
@@ -44,29 +48,29 @@ export default function GameScreen() {
     const w = worldRef.current;
     return {
       birdY: w.bird.y,
-      pipes: w.pipes.map((p) => ({ x: p.x, gapY: p.gapY, gap: (p as any).gap ?? cfg.pipe.gap })),
+      pipes: w.pipes.map((p) => ({ id: (p as any).id, x: p.x, gapY: p.gapY, gap: (p as any).gap ?? cfg.pipe.gap })),
       clouds: w.clouds.map((c) => ({ ...c })),
       soil: w.soil.map((s) => ({ ...s })),
-      bushes: (w as any).bushes ? (w as any).bushes.map((b: any) => ({ ...b })) : [],
       flapPulse: false,
     };
   });
   const { dead: isGameOver, kill: markDead, revive } = useDeadBird(false);
-  const [score, setScore] = useState(0);
-
+  const birdCenterXUnits = birdXUnits + cfg.bird.width / 2;
+  const { score, reset: resetScore } = useScore({
+    birdX: birdCenterXUnits,
+    pipes: renderState.pipes.map((p) => ({ id: (p as any).id, x: p.x, width: cfg.pipe.width })),
+  });
+  const [paused, setPaused] = useState(false);
   const onTap = useCallback(() => {
     // Disable flap after death
-    if (!isGameOver) {
+    if (!isGameOver && !paused) {
       flapRef.current = true;
-      const now = Date.now();
-      const taps = worldRef.current.bird.tapTimes ?? [];
-      taps.push(now);
-      worldRef.current.bird.tapTimes = taps.filter((t) => now - t <= 1500);
+      registerTap(worldRef.current.bird, 1500);
       if (!muted) {
         playSound(false);
       }
     }
-  }, [isGameOver, muted]);
+  }, [isGameOver, muted, paused]);
 
   const update = useCallback(
     (dt: number) => {
@@ -83,45 +87,9 @@ export default function GameScreen() {
         // move world
         advancePipesMut(w, cfg, dt, speed);
         recyclePipes(w, cfg);
-        updateClouds(w, cfg, dt);
-        updateSoil(w, cfg, dt);
-        // Increment score when pipe center passes the bird's center (count once per pipe)
-        const birdCenterX = birdXUnits + cfg.bird.width / 2;
-        let inc = 0;
-        w.pipes.forEach((p) => {
-          const pipeCenterX = p.x + cfg.pipe.width / 2;
-          if (!p.passed && pipeCenterX < birdCenterX) {
-            p.passed = true;
-            inc += 1;
-          }
-        });
-        if (inc > 0) setScore((s) => s + inc);
       }
 
-      // Collision detection (units)
-      const birdRect = {
-        x: birdXUnits,
-        y: w.bird.y,
-        width: cfg.bird.width,
-        height: cfg.bird.height,
-      };
-      const pipeRects = w.pipes.flatMap((p) => {
-        const pGap = (p as any).gap ?? cfg.pipe.gap;
-        const topHeight = Math.max(0, p.gapY - pGap / 2);
-        const bottomHeight = Math.max(
-          0,
-          cfg.world.screenHeight - (p.gapY + pGap / 2)
-        );
-        return [
-          { x: p.x, y: 0, width: cfg.pipe.width, height: topHeight },
-          {
-            x: p.x,
-            y: cfg.world.screenHeight - bottomHeight,
-            width: cfg.pipe.width,
-            height: bottomHeight,
-          },
-        ];
-      });
+      // Collision detection (units handled in detectWorldCollision)
       const hit = detectWorldCollision(w, cfg, birdXUnits);
       if (hit.any && !isGameOver) {
         // stop flap and mark game over; keep velocity so bird can fall/rotate naturally
@@ -131,10 +99,9 @@ export default function GameScreen() {
 
       setRenderState((prev) => ({
         birdY: w.bird.y,
-        pipes: w.pipes.map((p) => ({ x: p.x, gapY: p.gapY, gap: (p as any).gap ?? cfg.pipe.gap })),
+        pipes: w.pipes.map((p) => ({ id: (p as any).id, x: p.x, gapY: p.gapY, gap: (p as any).gap ?? cfg.pipe.gap })),
         clouds: w.clouds.map((c) => ({ ...c })),
         soil: w.soil.map((s) => ({ ...s })),
-        bushes: (w as any).bushes ? (w as any).bushes.map((b: any) => ({ ...b })) : [],
         flapPulse: didFlap,
       }));
     },
@@ -142,7 +109,6 @@ export default function GameScreen() {
   );
 
   const { start, stop } = useGameLoop({ onUpdate: (dt) => update(dt) }, { autoStart: true });
-  const [paused, setPaused] = useState(false);
   useEffect(() => {
     if (paused) {
       stop();
@@ -154,26 +120,17 @@ export default function GameScreen() {
   useEffect(() => {
     if (muted) stopTap();
   }, [muted]);
+  useEffect(() => {
+    if (isGameOver) {
+      stop();
+      stopTap();
+    }
+  }, [isGameOver, stop]);
 
   // Convert to px for rendering (local scale)
   // When dead, tilt the bird downward; optionally clamp to ground if beyond ground line
   const groundYUnits = cfg.world.screenHeight - cfg.world.groundHeight;
-  const isOnGround = renderState.birdY >= groundYUnits - cfg.bird.height;
-  let rotationDeg = 0;
-  if (isGameOver) {
-    rotationDeg = 70;
-  } else {
-    const vy = worldRef.current.bird.vy;
-    const upTilt = -15;   // nose up when rising
-    const downTilt = 35;  // nose down when falling
-    if (vy < 0) {
-      const t = Math.min(1, Math.abs(vy) / (cfg.bird.jumpVelocity * 0.8));
-      rotationDeg = upTilt * t;
-    } else {
-      const t = Math.min(1, vy / (cfg.bird.maxFallSpeed * 0.7));
-      rotationDeg = downTilt * t;
-    }
-  }
+  const rotationDeg = computeBirdTiltDeg(worldRef.current.bird.vy, cfg, isGameOver);
   const birdTopPx = toPxLocal(Math.min(renderState.birdY, groundYUnits - cfg.bird.height));
   const birdLeftPx = toPxLocal(birdXUnits);
   const pipeWidthPx = toPxLocal(cfg.pipe.width);
@@ -182,7 +139,7 @@ export default function GameScreen() {
   const skylineH = toPxLocal(30);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#87ceeb' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       <LinearGradient
         colors={[
           'rgb(135, 206, 250)',
@@ -200,6 +157,14 @@ export default function GameScreen() {
         onStartShouldSetResponder={() => true}
         onResponderRelease={onTap}
       >
+        <TouchableOpacity
+          onPress={() => setPaused((p) => !p)}
+          style={{ position: 'absolute', top: 12, right: 48, padding: 8, zIndex: 20 }}
+          accessibilityRole="button"
+          accessibilityLabel={paused ? 'Resume game' : 'Pause game'}
+        >
+          <Ionicons name={paused ? 'play' : 'pause'} size={24} color="#fff" />
+        </TouchableOpacity>
         <TouchableOpacity
           onPress={toggle}
           style={{ position: 'absolute', top: 12, right: 12, padding: 8, zIndex: 20 }}
@@ -253,46 +218,104 @@ export default function GameScreen() {
           rotationDeg={rotationDeg}
         />
         {renderState.pipes.map((p, i) => {
-          const xPx = Math.floor(toPxLocal(p.x));
+          const xPx = toPxLocal(p.x);
           const gapYpx = toPxLocal(p.gapY);
           const gapPxLocal = toPxLocal((p as any).gap ?? cfg.pipe.gap);
           const topHeight = Math.max(0, gapYpx - gapPxLocal / 2);
           const bottomHeight = Math.max(0, screenHeightPx - (gapYpx + gapPxLocal / 2));
           const bottomYpx = gapYpx + gapPxLocal / 2;
           return (
-            <Pipe key={i} x={xPx} topHeight={topHeight} bottomHeight={bottomHeight} width={pipeWidthPx} bottomY={bottomYpx} />
+            <Pipe key={(p as any).id ?? i} x={xPx} topHeight={topHeight} bottomHeight={bottomHeight} width={pipeWidthPx} bottomY={bottomYpx} />
           );
         })}
         <Hud score={score} />
-        {isGameOver && (
-          <View style={{ 
-            position: 'absolute', 
-            bottom: 50,
+        {paused && (
+          <View style={{
+            position: 'absolute',
+            top: 0,
             left: 0,
             right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.35)',
             alignItems: 'center',
-            zIndex: 10
+            justifyContent: 'center',
+            zIndex: 25,
           }}>
+            <View style={{
+              backgroundColor: '#ffffff',
+              paddingVertical: 20,
+              paddingHorizontal: 24,
+              borderRadius: 14,
+              width: Math.min(px.w - 40, 320),
+              alignItems: 'center',
+              shadowColor: '#000',
+              shadowOpacity: 0.25,
+              shadowRadius: 8,
+              shadowOffset: { width: 0, height: 2 },
+              elevation: 6,
+            }}>
+              <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0b1020', marginBottom: 12 }}>Paused</Text>
+              <TouchableOpacity
+                style={[styles.button, { marginTop: 4 }]}
+                activeOpacity={0.85}
+                onPress={() => setPaused(false)}
+              >
+                <Text style={styles.buttonText}>Resume</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.replace('/')}
+                accessibilityRole="link"
+                accessibilityLabel="Back to Menu"
+              >
+                <Text style={{ marginTop: 12, color: '#0b1020', textDecorationLine: 'underline', fontWeight: 'bold', fontSize: 18 }}>Back to Menu</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+        {isGameOver && (
+          <View style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 30,
+          }}>
+            <BlurView
+              intensity={50}
+              tint="dark"
+              style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+            />
             <TouchableOpacity
               style={styles.button}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
               onPress={() => {
                 worldRef.current = createWorld(cfg);
                 spawnerRef.current = createPipeSpawner();
                 revive();
-                setScore(0);
+                resetScore();
                 const w = worldRef.current;
                 setRenderState({
                   birdY: w.bird.y,
-                  pipes: w.pipes.map((p) => ({ x: p.x, gapY: p.gapY, gap: (p as any).gap ?? cfg.pipe.gap })),
+                  pipes: w.pipes.map((p) => ({ id: (p as any).id, x: p.x, gapY: p.gapY, gap: (p as any).gap ?? cfg.pipe.gap })),
                   clouds: w.clouds.map((c) => ({ ...c })),
                   soil: w.soil.map((s) => ({ ...s })),
-                  bushes: (w as any).bushes ? (w as any).bushes.map((b: any) => ({ ...b })) : [],
                   flapPulse: false,
                 });
               }}
             >
               <Text style={styles.buttonText}>Reset</Text>
+              
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.replace('/')}
+              accessibilityRole="link"
+              accessibilityLabel="Back to Menu"
+              style={{ marginTop: 10 }}
+            >
+              <Text style={{ color: '#ffffff', textDecorationLine: 'underline', fontWeight: 'bold', fontSize: 18 }}>Back to Menu</Text>
             </TouchableOpacity>
           </View>
         )}
