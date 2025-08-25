@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { PRIMARY_COLOR, SECONDARY_COLOR } from './colors';
 
 const styles = StyleSheet.create({
   // Shared container used by both menu and game screens
@@ -13,7 +14,7 @@ const styles = StyleSheet.create({
   },
   // Game screen overlay to get a sky-like background while retaining base layout
   gameContainer: {
-    backgroundColor: '#87CEEB',
+    backgroundColor: SECONDARY_COLOR,
   },
 
   // Menu screen styles
@@ -27,7 +28,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 6,
   },
   button: {
-    backgroundColor: '#B8860B',
+    backgroundColor: PRIMARY_COLOR,
     paddingHorizontal: 40,
     paddingVertical: 15,
     borderRadius: 25,
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
   
   // pipe styles removed; Pipe.tsx fully styles itself now
   score: {
-    color: '#B8860B',
+    color: PRIMARY_COLOR,
     fontSize: 24,
     fontWeight: 'bold',
     letterSpacing: 0.75,

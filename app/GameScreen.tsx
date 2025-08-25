@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from "expo-linear-gradient";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LayoutChangeEvent, PixelRatio, Text, TouchableOpacity, View } from "react-native";
+import { SECONDARY_COLOR } from "../src/styles/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Bird from "../src/components/Bird";
 import { BushesFull, Cloud, Skyline, Soil } from "../src/components/CloudAndSoil";
@@ -182,7 +183,7 @@ export default function GameScreen() {
   const skylineH = toPxLocal(30);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#87ceeb' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: SECONDARY_COLOR }}>
       <LinearGradient
         colors={[
           'rgb(135, 206, 250)',
