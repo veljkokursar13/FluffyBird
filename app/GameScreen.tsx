@@ -11,9 +11,10 @@ import Hud from "../src/components/Hud";
 import Pipe from "../src/components/Pipe";
 import { GAME_CONFIG } from "../src/constants/gameConfig";
 import { detectWorldCollision } from "../src/game/collision";
-import { advancePipesMut, applyBirdPhysics, recyclePipes, updateClouds, updateSoil } from "../src/game/physics";
-import { createPipeSpawner, pipeMovement, tickPipeSpawner } from "../src/game/pipes";
+import { applyBirdPhysics, updateClouds, updateSoil } from "../src/game/physics";
 import { createWorld } from "../src/game/world";
+import { PipeDirector } from "@/src/ai/PipeDirector";
+import type { Pipe as DirPipe } from "@/src/ai/pipeTypes";
 import useGameLoop, { useDeadBird } from "../src/hooks/useGameLoop";
 import styles from "../src/styles/gameStyles";
 
@@ -35,16 +36,48 @@ export default function GameScreen() {
 
   // World lives outside React (mutable)
   const worldRef = useRef(createWorld(cfg));
-  const spawnerRef = useRef(createPipeSpawner());
+  worldRef.current.pipes = [];
   const flapRef = useRef(false);
   const birdXUnits = 12; // horizontal bird position in world units
+
+  const directorRef = useRef<PipeDirector>();
+  if (!directorRef.current) {
+    const dims = { widthPx: cfg.world.screenWidth, heightPx: cfg.world.screenHeight };
+    const pipeCfg = cfg.pipe;
+    directorRef.current = new PipeDirector(
+      1337,
+      {
+        minGapPx: pipeCfg.minGapSize ?? pipeCfg.gap,
+        maxGapPx: pipeCfg.maxGapSize ?? pipeCfg.gap,
+        minSpeed: pipeCfg.speed * 0.8,
+        maxSpeed: pipeCfg.speed * 1.4,
+        minSpacing: pipeCfg.minPairSpacing ?? pipeCfg.spacing ?? 26,
+        maxSpacing: pipeCfg.maxPairSpacing ?? pipeCfg.spacing ?? 40,
+        minGapY: (pipeCfg.minGapY ?? 0) / cfg.world.screenHeight,
+        maxGapY: (pipeCfg.maxGapY ?? cfg.world.screenHeight) / cfg.world.screenHeight,
+      },
+      dims,
+      {
+        gapPx: pipeCfg.gap,
+        speedPxPerSec: pipeCfg.speed,
+        spacingPx: pipeCfg.spacing ?? 26,
+        variancePx: 4,
+      }
+    );
+  }
+
+  const [pipes, setPipes] = useState<(DirPipe & { passed?: boolean })[]>(() =>
+    directorRef.current!
+      .spawnSequence(6, cfg.world.screenWidth * 1.1)
+      .map((p) => ({ ...p, passed: false }))
+  );
+  const pipesRef = useRef(pipes);
 
   // Minimal render state
   const [renderState, setRenderState] = useState(() => {
     const w = worldRef.current;
     return {
       birdY: w.bird.y,
-      pipes: w.pipes.map((p) => ({ x: p.x, gapY: p.gapY, gap: (p as any).gap ?? cfg.pipe.gap })),
       clouds: w.clouds.map((c) => ({ ...c })),
       soil: w.soil.map((s) => ({ ...s })),
       bushes: (w as any).bushes ? (w as any).bushes.map((b: any) => ({ ...b })) : [],
@@ -77,18 +110,23 @@ export default function GameScreen() {
       flapRef.current = false;
 
       if (!isGameOver) {
-        const speed = pipeMovement({score}, cfg.pipe.speed);
-        // simple spawner call
-        tickPipeSpawner(spawnerRef.current, w, dt, score);
-        // move world
-        advancePipesMut(w, cfg, dt, speed);
-        recyclePipes(w, cfg);
+        const prevPipes = pipesRef.current;
+        const updated = directorRef.current!
+          .tickMoveAndRecycle(prevPipes as DirPipe[], dt, cfg.world.screenWidth)
+          .map((p) => ({
+            ...p,
+            passed: prevPipes.find((prev) => prev.id === p.id)?.passed || false,
+          }));
+        pipesRef.current = updated;
+        setPipes(updated);
+
         updateClouds(w, cfg, dt);
         updateSoil(w, cfg, dt);
+
         // Increment score when pipe center passes the bird's center (count once per pipe)
         const birdCenterX = birdXUnits + cfg.bird.width / 2;
         let inc = 0;
-        w.pipes.forEach((p) => {
+        pipesRef.current.forEach((p) => {
           const pipeCenterX = p.x + cfg.pipe.width / 2;
           if (!p.passed && pipeCenterX < birdCenterX) {
             p.passed = true;
@@ -99,29 +137,12 @@ export default function GameScreen() {
       }
 
       // Collision detection (units)
-      const birdRect = {
-        x: birdXUnits,
-        y: w.bird.y,
-        width: cfg.bird.width,
-        height: cfg.bird.height,
-      };
-      const pipeRects = w.pipes.flatMap((p) => {
-        const pGap = (p as any).gap ?? cfg.pipe.gap;
-        const topHeight = Math.max(0, p.gapY - pGap / 2);
-        const bottomHeight = Math.max(
-          0,
-          cfg.world.screenHeight - (p.gapY + pGap / 2)
-        );
-        return [
-          { x: p.x, y: 0, width: cfg.pipe.width, height: topHeight },
-          {
-            x: p.x,
-            y: cfg.world.screenHeight - bottomHeight,
-            width: cfg.pipe.width,
-            height: bottomHeight,
-          },
-        ];
-      });
+      w.pipes = pipesRef.current.map((p) => ({
+        x: p.x,
+        gapY: p.gapY * cfg.world.screenHeight,
+        gap: directorRef.current!.getParams().gapPx,
+        passed: p.passed,
+      }));
       const hit = detectWorldCollision(w, cfg, birdXUnits);
       if (hit.any && !isGameOver) {
         // stop flap and mark game over; keep velocity so bird can fall/rotate naturally
@@ -131,14 +152,13 @@ export default function GameScreen() {
 
       setRenderState((prev) => ({
         birdY: w.bird.y,
-        pipes: w.pipes.map((p) => ({ x: p.x, gapY: p.gapY, gap: (p as any).gap ?? cfg.pipe.gap })),
         clouds: w.clouds.map((c) => ({ ...c })),
         soil: w.soil.map((s) => ({ ...s })),
         bushes: (w as any).bushes ? (w as any).bushes.map((b: any) => ({ ...b })) : [],
         flapPulse: didFlap,
       }));
     },
-    [cfg, isGameOver, score, muted]
+    [cfg, isGameOver, muted]
   );
 
   const { start, stop } = useGameLoop({ onUpdate: (dt) => update(dt) }, { autoStart: true });
@@ -176,8 +196,6 @@ export default function GameScreen() {
   }
   const birdTopPx = toPxLocal(Math.min(renderState.birdY, groundYUnits - cfg.bird.height));
   const birdLeftPx = toPxLocal(birdXUnits);
-  const pipeWidthPx = toPxLocal(cfg.pipe.width);
-  const screenHeightPx = toPxLocal(cfg.world.screenHeight);
   const groundTopPx = toPxLocal(cfg.world.screenHeight - cfg.world.groundHeight);
   const skylineH = toPxLocal(30);
 
@@ -252,17 +270,16 @@ export default function GameScreen() {
           flapping={renderState.flapPulse && !isGameOver}
           rotationDeg={rotationDeg}
         />
-        {renderState.pipes.map((p, i) => {
-          const xPx = Math.floor(toPxLocal(p.x));
-          const gapYpx = toPxLocal(p.gapY);
-          const gapPxLocal = toPxLocal((p as any).gap ?? cfg.pipe.gap);
-          const topHeight = Math.max(0, gapYpx - gapPxLocal / 2);
-          const bottomHeight = Math.max(0, screenHeightPx - (gapYpx + gapPxLocal / 2));
-          const bottomYpx = gapYpx + gapPxLocal / 2;
-          return (
-            <Pipe key={i} x={xPx} topHeight={topHeight} bottomHeight={bottomHeight} width={pipeWidthPx} bottomY={bottomYpx} />
-          );
-        })}
+        {pipes.map((p) => (
+          <Pipe
+            key={p.id}
+            pipe={p}
+            gap={directorRef.current!.getParams().gapPx}
+            worldHeight={cfg.world.screenHeight}
+            toPx={toPxLocal}
+            width={cfg.pipe.width}
+          />
+        ))}
         <Hud score={score} />
         {isGameOver && (
           <View style={{ 
@@ -278,13 +295,18 @@ export default function GameScreen() {
               activeOpacity={0.8}
               onPress={() => {
                 worldRef.current = createWorld(cfg);
-                spawnerRef.current = createPipeSpawner();
                 revive();
                 setScore(0);
+                worldRef.current = createWorld(cfg);
+                worldRef.current.pipes = [];
+                const fresh = directorRef.current!
+                  .spawnSequence(6, cfg.world.screenWidth * 1.1)
+                  .map((p) => ({ ...p, passed: false }));
+                pipesRef.current = fresh;
+                setPipes(fresh);
                 const w = worldRef.current;
                 setRenderState({
                   birdY: w.bird.y,
-                  pipes: w.pipes.map((p) => ({ x: p.x, gapY: p.gapY, gap: (p as any).gap ?? cfg.pipe.gap })),
                   clouds: w.clouds.map((c) => ({ ...c })),
                   soil: w.soil.map((s) => ({ ...s })),
                   bushes: (w as any).bushes ? (w as any).bushes.map((b: any) => ({ ...b })) : [],
