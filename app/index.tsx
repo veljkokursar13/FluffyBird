@@ -1,7 +1,7 @@
 import GameLoader from '@/src/components/GameLoader';
-import { playSound as playBgm, stopSound as stopBgm } from '@/src/state/fluffy-soundtrack';
+import { playSound as playBgm, stopSound as stopBgm } from '@/src/state/sound/fluffy-soundtrack';
 import useGameLoading from '@/src/state/gameLoading';
-import { useSoundStore } from '@/src/state/sound';
+import { useSoundStore } from '@/src/state/sound/sound';
 import styles from '@/src/styles/gameStyles';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -41,7 +41,7 @@ export default function MenuScreen() {
 
   const startGame = () => {
     stopBgm();
-    router.push('/GameScreen');
+    router.push('/game');
   };
 
   return (

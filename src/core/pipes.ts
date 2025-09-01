@@ -1,4 +1,4 @@
-import { GAME_CONFIG } from '../constants/gameConfig';
+import { GAME_CONFIG } from './config';
 import type { Rect } from './collision';
 
 let PIPE_ID = 1;

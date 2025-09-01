@@ -1,4 +1,4 @@
-import { useSoundStore } from '@/src/state/sound';
+import { useSoundStore } from '@/src/state/sound/sound';
 import { Audio, AVPlaybackStatusSuccess } from 'expo-av';
 
 let tapSound: Audio.Sound | null = null;
@@ -8,7 +8,7 @@ export async function playSound(loop: boolean = false): Promise<void> {
 		if (useSoundStore.getState().muted) return;
 		if (!tapSound) {
 			const { sound } = await Audio.Sound.createAsync(
-				require('../../assets/audio/gameplaysound.mp3')
+                                require('../../../assets/audio/gameplaysound.mp3')
 			);
 			tapSound = sound;
 		}
@@ -49,7 +49,7 @@ export async function preloadTapSound(): Promise<void> {
 	try {
 		if (!tapSound) {
 			const { sound } = await Audio.Sound.createAsync(
-				require('../../assets/audio/gameplaysound.mp3')
+                                require('../../../assets/audio/gameplaysound.mp3')
 			);
 			tapSound = sound;
 		}

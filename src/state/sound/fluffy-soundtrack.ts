@@ -1,4 +1,4 @@
-import { useSoundStore } from '@/src/state/sound';
+import { useSoundStore } from '@/src/state/sound/sound';
 import { Audio, AVPlaybackStatusSuccess } from 'expo-av';
 
 let bgm: Audio.Sound | null = null;
@@ -9,7 +9,7 @@ export async function playSound(loop: boolean = true): Promise<void> {
 		if (useSoundStore.getState().muted) return;
 		if (!bgm) {
 			const { sound } = await Audio.Sound.createAsync(
-				require('../../assets/audio/fluffy-soundtrack.wav'),
+                                require('../../../assets/audio/fluffy-soundtrack.wav'),
 				{ isLooping: loop, volume: 0.6 }
 			);
 			bgm = sound;
@@ -64,7 +64,7 @@ export async function preloadSoundtrack(): Promise<void> {
 	try {
 		if (!bgm) {
 			const { sound } = await Audio.Sound.createAsync(
-				require('../../assets/audio/fluffy-soundtrack.wav'),
+                                require('../../../assets/audio/fluffy-soundtrack.wav'),
 				{ isLooping: true, volume: 0.6 }
 			);
 			bgm = sound;

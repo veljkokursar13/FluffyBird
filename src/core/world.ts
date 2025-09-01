@@ -1,4 +1,4 @@
-import type { GAME_CONFIG } from '../constants/gameConfig';
+import type { GAME_CONFIG } from './config';
 import type { Bush, Cloud, Soil } from './environmentCreation';
 import { createRandomCloud, initializeBushes, initializeSoil } from './environmentCreation';
 import { nextPipeId } from './pipes';

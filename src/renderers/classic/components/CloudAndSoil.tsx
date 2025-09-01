@@ -1,13 +1,13 @@
 import { Image as ExpoImage } from 'expo-image';
 import { StyleSheet } from 'react-native';
-import bushesFar from '../../assets/images/bushes-far.svg';
-import bushesNear from '../../assets/images/bushes-near.svg';
-import cloudClose from '../../assets/images/cloud-close-1.svg';
-import cloudFar1 from '../../assets/images/cloud-far-1.svg';
-import cloudFar2 from '../../assets/images/cloud-far-2.svg';
-import skylineImg from '../../assets/images/skyline.svg';
-import soilWithGrass from '../../assets/images/soil-with-grass.svg';
-import type { Bush as BushType, Cloud, Soil as SoilType } from '../game/environmentCreation';
+import bushesFar from '../../../../assets/images/bushes-far.svg';
+import bushesNear from '../../../../assets/images/bushes-near.svg';
+import cloudClose from '../../../../assets/images/cloud-close-1.svg';
+import cloudFar1 from '../../../../assets/images/cloud-far-1.svg';
+import cloudFar2 from '../../../../assets/images/cloud-far-2.svg';
+import skylineImg from '../../../../assets/images/skyline.svg';
+import soilWithGrass from '../../../../assets/images/soil-with-grass.svg';
+import type { Bush as BushType, Cloud, Soil as SoilType } from '@/src/core/environmentCreation';
 
 type CloudProps = {
   cloud: Cloud;

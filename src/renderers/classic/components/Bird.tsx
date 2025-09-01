@@ -1,6 +1,6 @@
 import { Image as ExpoImage } from 'expo-image';
 import { ImageSourcePropType, StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { useWingFlap } from '../game/bird';
+import { useWingFlap } from '@/src/core/bird';
 
 type BirdProps = {
 	style?: StyleProp<ViewStyle>;
@@ -12,7 +12,7 @@ type BirdProps = {
 };
 
 function Bird({ style, source, width, height, flapping = false, rotationDeg = 0 }: BirdProps) {
-	const imgSource = source ?? require('../../assets/images/bird.svg');
+        const imgSource = source ?? require('../../../../assets/images/bird.svg');
 	const sizeStyle = width && height ? { width, height } : undefined;
 	const flap = useWingFlap({ trigger: flapping, liftPx: 5, maxLiftPx: 8, decayPerSec: 100 });
 
@@ -25,7 +25,7 @@ function Bird({ style, source, width, height, flapping = false, rotationDeg = 0 
 			/>
 			{width && height ? (
 				<ExpoImage
-					source={require('../../assets/images/wing-mid.svg')}
+                                source={require('../../../../assets/images/wing-mid.svg')}
 					style={{
 						position: 'absolute',
 						// wing size ~44% of bird
