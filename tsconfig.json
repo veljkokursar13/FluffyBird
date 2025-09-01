@@ -6,7 +6,15 @@
     "strict": true,
     "noImplicitAny": false,
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@core/*": ["./src/core/*"],
+      "@classic/*": ["./src/renderers/classic/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@state/*": ["./src/state/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@types/*": ["./src/types/*"],
+      "@ui/*": ["./src/ui/*"],
+      "@assets/*": ["./assets/*"]
     },
     "types": ["nativewind/types"]
   },
