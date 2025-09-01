@@ -64,7 +64,7 @@ export default function detectCollision(
 
 
 // Convenience wrapper to detect collisions for the entire world
-import { GAME_CONFIG } from '../constants/gameConfig';
+import { GAME_CONFIG } from './config';
 import type { World } from './world';
 
 // Circle vs Rect overlap helper

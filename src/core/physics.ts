@@ -1,4 +1,4 @@
-import { GAME_CONFIG } from '../constants/gameConfig';
+import { GAME_CONFIG } from './config';
 import type { World } from './world';
 
 // Mutating helpers used by the orchestrator-style game loop

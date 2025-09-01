@@ -1,6 +1,6 @@
 import { Image as ExpoImage } from 'expo-image';
 import { StyleSheet, View } from 'react-native';
-import { GAME_CONFIG } from '../constants/gameConfig';
+import { GAME_CONFIG } from '@/src/core/config';
 
 type PipeProps = {
   x: number; // px
@@ -10,9 +10,9 @@ type PipeProps = {
   bottomY?: number; // px from top of container
 };
 
-const pipeBody = require('../../assets/images/pipe-body.svg');
-const pipeBottomCap = require('../../assets/images/pipe-bottom.svg');
-const pipeTopCap = require('../../assets/images/pipe-top.svg');
+const pipeBody = require('../../../../assets/images/pipe-body.svg');
+const pipeBottomCap = require('../../../../assets/images/pipe-bottom.svg');
+const pipeTopCap = require('../../../../assets/images/pipe-top.svg');
 
 export default function Pipe({ x, topHeight, bottomHeight, width, bottomY }: PipeProps) {
   const commonWidth = width != null ? { width } : undefined;

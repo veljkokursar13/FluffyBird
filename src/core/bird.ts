@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { GAME_CONFIG } from "../constants/gameConfig";
+import type { GAME_CONFIG } from "./config";
 
 
 type WingFlapOptions = {

@@ -1,7 +1,7 @@
 import * as Font from 'expo-font';
 import { useEffect, useState } from 'react';
-import { preloadSoundtrack } from './fluffy-soundtrack';
-import { preloadTapSound } from './gameplaysound';
+import { preloadSoundtrack } from './sound/fluffy-soundtrack';
+import { preloadTapSound } from './sound/gameplaysound';
 
 export function useGameLoading(minMs: number = 900) {
   const [loading, setLoading] = useState(true);

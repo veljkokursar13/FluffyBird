@@ -1,4 +1,4 @@
-import { GAME_CONFIG } from "../constants/gameConfig";
+import { GAME_CONFIG } from "./config";
 
 export type Cloud = {
   x: number;

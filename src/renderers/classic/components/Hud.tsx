@@ -1,6 +1,6 @@
 import { StyleProp, Text, View, ViewStyle } from 'react-native';
-import useBestScore from '../hooks/useBestScore';
-import styles from '../styles/gameStyles';
+import useBestScore from '@/src/hooks/useBestScore';
+import styles from '@/src/styles/gameStyles';
 
 type HudProps = {
   score: number;
