@@ -52,6 +52,9 @@ FluffyBird/
 │   ├── constants/      # Game constants and config
 │   ├── game/           # Core game logic and physics
 │   ├── hooks/          # Custom React hooks
+│   ├── renderers/      # Visual branches
+│   │   ├── classic/        # Original renderer
+│   │   └── current_model/  # Placeholder for the current model branch
 │   ├── state/          # Zustand store and sound state
 │   ├── types/          # TypeScript definitions
 │   └── utils/          # Helper functions
