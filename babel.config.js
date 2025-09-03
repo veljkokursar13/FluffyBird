@@ -11,6 +11,7 @@ module.exports = function (api) {
         alias: {
           '@core': './src/core',
           '@classic': './src/renderers/classic',
+          '@current_model': './src/renderers/current_model',
           '@hooks': './src/hooks',
           '@state': './src/state',
           '@utils': './src/utils',
